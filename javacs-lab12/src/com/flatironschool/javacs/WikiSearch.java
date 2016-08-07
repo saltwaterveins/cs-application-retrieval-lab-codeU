@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -61,7 +62,27 @@ public class WikiSearch {
 	 */
 	public WikiSearch or(WikiSearch that) {
         // FILL THIS IN!
-		return null;
+		List<Entry<String, Integer>> listOne = this.sort();
+		List<Entry<String, Integer>> listTwo = that.sort();
+
+        Map<String, Integer> map = new HashMap<String, Integer>();
+
+		for (int i = 0; i < listOne.size(); i++){
+			if (listOne.get(i).getValue() > 0){
+				map.put(listOne.get(i).getKey(), listOne.get(i).getValue());
+			}
+		}
+
+		for (int i = 0; i < listTwo.size(); i++){
+			if (listTwo.get(i).getValue() > 0){
+				if (map.containsKey(listTwo.get(i).getKey())){
+					map.put(listTwo.get(i).getKey(), totalRelevance(listTwo.get(i).getValue(), map.get(listTwo.get(i).getKey())));
+				} else {
+					map.put(listTwo.get(i).getKey(), listTwo.get(i).getValue());
+				}
+			}
+		}
+			return new WikiSearch(map);
 	}
 	
 	/**
@@ -72,7 +93,15 @@ public class WikiSearch {
 	 */
 	public WikiSearch and(WikiSearch that) {
         // FILL THIS IN!
-		return null;
+		Map<String, Integer> intersection = new HashMap<String, Integer>();
+		for (String url : map.keySet()) {
+			if (getRelevance(url) != 0 && that.getRelevance(url) != 0) {
+				intersection.put(url, totalRelevance(getRelevance(url), that.getRelevance(url)));
+			} else {
+				intersection.put(url, 0);
+			}
+		}
+		return new WikiSearch(intersection);
 	}
 	
 	/**
@@ -83,7 +112,11 @@ public class WikiSearch {
 	 */
 	public WikiSearch minus(WikiSearch that) {
         // FILL THIS IN!
-		return null;
+		Map<String, Integer> intersection = new HashMap<String, Integer>();
+		for (String url : map.keySet()) {
+			if (that.getRelevance(url) == 0) intersection.put(url, getRelevance(url));
+		}
+		return new WikiSearch(intersection);
 	}
 	
 	/**
@@ -105,7 +138,17 @@ public class WikiSearch {
 	 */
 	public List<Entry<String, Integer>> sort() {
         // FILL THIS IN!
-		return null;
+		List<Entry<String, Integer>> results = new LinkedList<Entry<String, Integer>>(map.entrySet());
+		Comparator<Entry<String, Integer>> comparator = new Comparator<Entry<String, Integer>>() {
+			@Override
+			public int compare(Entry<String, Integer> entry1, Entry<String, Integer> entry2) {
+				if (entry1.getValue() < entry2.getValue()) return -1;
+				if (entry1.getValue() > entry2.getValue()) return 1;
+				return 0;
+			}
+		};
+		Collections.sort(results, comparator);
+		return results;
 	}
 
 	/**
